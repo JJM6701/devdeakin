@@ -14,21 +14,25 @@ import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 import CommentSection from "./CommentSection";
 
 const VideoPage = () => {
+  // State for storing videos and the current user's ID
   const [videos, setVideos] = useState([]);
   const [userId, setUserId] = useState(null);
 
+  // Listen for changes in the user's authentication status
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        setUserId(user.uid);
+        setUserId(user.uid); // Set the user's ID when authenticated
       } else {
-        setUserId(null);
+        setUserId(null); // Reset the user ID when not authenticated
       }
     });
 
+    // Cleanup function to unsubscribe from the listener when the component unmounts
     return () => unsubscribe();
   }, []);
 
+  // Fetch videos from Firestore where the type is "video"
   useEffect(() => {
     const fetchVideos = async () => {
       const videoQuery = query(
@@ -46,11 +50,13 @@ const VideoPage = () => {
     fetchVideos();
   }, []);
 
+  // Handle when a video is played (increment view count)
   const handleView = async (videoId, currentViews) => {
     const videoDoc = doc(db, "posts", videoId);
     await updateDoc(videoDoc, { views: currentViews + 1 });
   };
 
+  // Handle when a video is liked by the user
   const handleLike = async (
     videoId,
     currentLikes,
@@ -59,6 +65,7 @@ const VideoPage = () => {
   ) => {
     if (!userId) return;
 
+    // Prevent the user from liking the video if they have already liked it
     if (likedBy.includes(userId)) {
       console.log("User has already liked this video.");
       return;
@@ -69,6 +76,7 @@ const VideoPage = () => {
       const updatedLikes = currentLikes + 1;
       const updatedLikedBy = [...likedBy, userId];
 
+      // If the user had previously disliked the video, remove the dislike
       let updatedDislikes = dislikedBy.length;
       let updatedDislikedBy = dislikedBy;
       if (dislikedBy.includes(userId)) {
@@ -76,6 +84,7 @@ const VideoPage = () => {
         updatedDislikedBy = dislikedBy.filter((id) => id !== userId);
       }
 
+      // Update the Firestore document with the new likes/dislikes data
       await updateDoc(videoDoc, {
         likes: updatedLikes,
         likedBy: updatedLikedBy,
@@ -83,6 +92,7 @@ const VideoPage = () => {
         dislikedBy: updatedDislikedBy,
       });
 
+      // Update the local state for the video
       setVideos((prevVideos) =>
         prevVideos.map((video) =>
           video.id === videoId
@@ -103,6 +113,7 @@ const VideoPage = () => {
     }
   };
 
+  // Handle when a video is disliked by the user
   const handleDislike = async (
     videoId,
     currentDislikes,
@@ -111,6 +122,7 @@ const VideoPage = () => {
   ) => {
     if (!userId) return;
 
+    // Prevent the user from disliking the video if they have already disliked it
     if (dislikedBy.includes(userId)) {
       console.log("User has already disliked this video.");
       return;
@@ -121,6 +133,7 @@ const VideoPage = () => {
       const updatedDislikes = currentDislikes + 1;
       const updatedDislikedBy = [...dislikedBy, userId];
 
+      // If the user had previously liked the video, remove the like
       let updatedLikes = likedBy.length;
       let updatedLikedBy = likedBy;
       if (likedBy.includes(userId)) {
@@ -128,6 +141,7 @@ const VideoPage = () => {
         updatedLikedBy = likedBy.filter((id) => id !== userId);
       }
 
+      // Update the Firestore document with the new dislikes/likes data
       await updateDoc(videoDoc, {
         dislikes: updatedDislikes,
         dislikedBy: updatedDislikedBy,
@@ -135,6 +149,7 @@ const VideoPage = () => {
         likedBy: updatedLikedBy,
       });
 
+      // Update the local state for the video
       setVideos((prevVideos) =>
         prevVideos.map((video) =>
           video.id === videoId
@@ -155,6 +170,7 @@ const VideoPage = () => {
     }
   };
 
+  // Inline styles for the component
   const styles = {
     container: {
       maxWidth: "800px",
@@ -204,6 +220,7 @@ const VideoPage = () => {
   return (
     <div style={styles.container}>
       <h1>Uploaded Videos</h1>
+      {/* Loop through each video and display it */}
       {videos.map((video) => (
         <div key={video.id} style={styles.videoCard}>
           <h2 style={styles.title}>{video.title}</h2>
@@ -212,9 +229,10 @@ const VideoPage = () => {
             src={video.fileUrl}
             controls
             style={styles.video}
-            onPlay={() => handleView(video.id, video.views)}
+            onPlay={() => handleView(video.id, video.views)} // Increment view count when video plays
           />
           <p style={styles.views}>Views: {video.views}</p>
+          {/* Like and Dislike buttons */}
           <div style={styles.likeDislikeContainer}>
             <div
               style={styles.likeDislikeButton}
@@ -229,7 +247,7 @@ const VideoPage = () => {
             >
               <ThumbUpIcon
                 style={{
-                  color: video.likedBy?.includes(userId) ? "blue" : "gray",
+                  color: video.likedBy?.includes(userId) ? "blue" : "gray", // Highlight if liked by user
                 }}
               />
               <span style={styles.likeCount}>{video.likes || 0}</span>
@@ -248,12 +266,13 @@ const VideoPage = () => {
             >
               <ThumbDownIcon
                 style={{
-                  color: video.dislikedBy?.includes(userId) ? "red" : "gray",
+                  color: video.dislikedBy?.includes(userId) ? "red" : "gray", // Highlight if disliked by user
                 }}
               />
               <span style={styles.likeCount}>{video.dislikes || 0}</span>
             </div>
           </div>
+          {/* Comment Section for the video */}
           <CommentSection postId={video.id} />{" "}
         </div>
       ))}

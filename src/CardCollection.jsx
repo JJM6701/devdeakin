@@ -10,12 +10,14 @@ import {
   getDoc,
   getDocs,
 } from "firebase/firestore";
-import { db } from "./firebase";
+import { db } from "./firebase"; // Firestore database reference
 
+// Component to display individual question cards
 const QuestionCard = ({ card, styles }) => {
   const [userFullName, setUserFullName] = useState("Unknown");
 
   useEffect(() => {
+    // Fetch the user's name based on the createdBy ID
     const fetchUserName = async () => {
       if (card.createdBy) {
         const userDoc = await getDoc(doc(db, "users", card.createdBy));
@@ -34,6 +36,7 @@ const QuestionCard = ({ card, styles }) => {
     : "Unknown date";
 
   const questionCardStyles = {
+    // Define styles for the question card layout
     title: {
       fontSize: "1.5rem",
       fontWeight: "bold",
@@ -93,13 +96,9 @@ const QuestionCard = ({ card, styles }) => {
       }
     >
       <h3 style={questionCardStyles.title}>{card.title}</h3>
-
       <p style={questionCardStyles.createdBy}>{userFullName}</p>
-
       <p style={questionCardStyles.date}>{formattedDate}</p>
-
       <p style={questionCardStyles.description}>{card.description}</p>
-
       {card.tags && (
         <p>
           <span style={questionCardStyles.tags}># {card.tags}</span>
@@ -109,10 +108,12 @@ const QuestionCard = ({ card, styles }) => {
   );
 };
 
+// Component to display individual article cards
 const ArticleCard = ({ card }) => {
   const [userFullName, setUserFullName] = useState("Unknown");
 
   useEffect(() => {
+    // Fetch the author's name
     const fetchUserName = async () => {
       if (card.createdBy) {
         const userDoc = await getDoc(doc(db, "users", card.createdBy));
@@ -131,6 +132,7 @@ const ArticleCard = ({ card }) => {
     : "Unknown date";
 
   const articleCardStyles = {
+    // Define styles for the article card layout
     cardContainer: {
       border: "1px solid #ddd",
       borderRadius: "10px",
@@ -214,13 +216,9 @@ const ArticleCard = ({ card }) => {
       </div>
 
       <h3 style={articleCardStyles.title}>{card.title}</h3>
-
       <p style={articleCardStyles.createdBy}>Written by: {userFullName}</p>
-
       <p style={articleCardStyles.date}>{formattedDate}</p>
-
       <p style={articleCardStyles.abstract}>{card.abstract}</p>
-
       {card.tags && (
         <p>
           <span style={articleCardStyles.tags}># {card.tags}</span>
@@ -230,10 +228,12 @@ const ArticleCard = ({ card }) => {
   );
 };
 
+// Component to display individual video cards
 const VideoCard = ({ card }) => {
   const [userFullName, setUserFullName] = useState("Unknown");
 
   useEffect(() => {
+    // Fetch the uploader's name
     const fetchUserName = async () => {
       if (card.createdBy) {
         const userDoc = await getDoc(doc(db, "users", card.createdBy));
@@ -252,6 +252,7 @@ const VideoCard = ({ card }) => {
     : "Unknown date";
 
   const videoCardStyles = {
+    // Define styles for the video card layout
     cardContainer: {
       border: "1px solid #ddd",
       borderRadius: "10px",
@@ -329,13 +330,10 @@ const VideoCard = ({ card }) => {
       </div>
 
       <h3 style={videoCardStyles.title}>{card.title}</h3>
-
       <p style={videoCardStyles.date}>Uploaded on: {formattedDate}</p>
-
       <p style={videoCardStyles.stats}>
         {card.views} views • {card.likes} likes • {card.dislikes} dislikes
       </p>
-
       {card.tags && (
         <p>
           <span style={videoCardStyles.tags}># {card.tags}</span>
@@ -345,11 +343,13 @@ const VideoCard = ({ card }) => {
   );
 };
 
+// Card collection component to display different types of posts (question, article, video)
 const CardCollection = ({ collectionName, permalink, postType }) => {
-  const [cards, setCards] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [cards, setCards] = useState([]); // State to store the fetched cards
+  const [loading, setLoading] = useState(true); // State to manage loading state
 
   const styles = {
+    // Define general styles for the card collection layout
     cardCollection: {
       padding: "30px 10px",
     },
@@ -362,29 +362,6 @@ const CardCollection = ({ collectionName, permalink, postType }) => {
       gap: "20px",
       flexWrap: "wrap",
       justifyContent: "center",
-    },
-    card: {
-      padding: "15px",
-      width: "300px",
-      display: "flex",
-      flexDirection: "column",
-      gap: "10px",
-    },
-    cardMedia: {
-      width: "100%",
-      height: "auto",
-      borderRadius: "2px",
-    },
-    cardContent: {
-      padding: "10px",
-      display: "flex",
-      flexDirection: "column",
-      gap: "20px",
-    },
-    cardDetails: {
-      display: "flex",
-      justifyContent: "space-between",
-      fontWeight: "bold",
     },
     viewMoreButton: {
       display: "block",
@@ -400,6 +377,7 @@ const CardCollection = ({ collectionName, permalink, postType }) => {
   };
 
   useEffect(() => {
+    // Fetch posts from Firestore based on the postType
     const fetchPosts = async () => {
       setLoading(true);
       try {
@@ -416,7 +394,7 @@ const CardCollection = ({ collectionName, permalink, postType }) => {
           ...doc.data(),
         }));
 
-        setCards(postsList);
+        setCards(postsList); // Store fetched cards in state
       } catch (error) {
         console.error("Error fetching posts:", error);
       }
@@ -424,10 +402,10 @@ const CardCollection = ({ collectionName, permalink, postType }) => {
     };
 
     fetchPosts();
-  }, [postType]);
+  }, [postType]); // Refetch posts when postType changes
 
   if (loading) {
-    return <p>Loading...</p>;
+    return <p>Loading...</p>; // Display loading message while fetching data
   }
 
   const renderCard = (card) => {

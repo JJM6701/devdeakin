@@ -1,23 +1,25 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { auth } from "./firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { useNavigate, Link } from "react-router-dom"; // Navigation and linking components
+import { auth } from "./firebase"; // Firebase authentication
+import { signInWithEmailAndPassword } from "firebase/auth"; // Firebase method for email/password login
 
 function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const navigate = useNavigate();
+  const [email, setEmail] = useState(""); // State to store the user's email
+  const [password, setPassword] = useState(""); // State to store the user's password
+  const navigate = useNavigate(); // Hook for navigating between pages
 
+  // Handle the login form submission
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate("/");
+      await signInWithEmailAndPassword(auth, email, password); // Attempt to sign in with email and password
+      navigate("/"); // Redirect to the homepage on successful login
     } catch (error) {
-      alert("Invalid email or password");
+      alert("Invalid email or password"); // Show error message if login fails
     }
   };
 
+  // Inline styles for the login form layout and elements
   const styles = {
     container: {
       display: "flex",
@@ -62,6 +64,7 @@ function LoginPage() {
 
   return (
     <div style={styles.container}>
+      {/* Login form */}
       <form onSubmit={handleLogin} style={styles.form}>
         <input
           type="email"
@@ -82,6 +85,7 @@ function LoginPage() {
         <button type="submit" style={styles.button}>
           Login
         </button>
+        {/* Link to signup page */}
         <p style={styles.signupLink}>
           Don't have an account? <Link to="/signup">Sign up</Link>
         </p>

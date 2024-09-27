@@ -1,21 +1,23 @@
 import React, { useState } from "react";
-import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
-import { useLocation } from "react-router-dom";
-import { auth, db } from "./firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js"; // Stripe integration for payment handling
+import { useLocation } from "react-router-dom"; // Hook to access the current location state
+import { auth, db } from "./firebase"; // Firebase authentication and database references
+import { doc, setDoc } from "firebase/firestore"; // Firestore methods for updating documents
 
 const CheckoutPage = () => {
-  const stripe = useStripe();
-  const elements = useElements();
-  const location = useLocation();
-  const [paymentStatus, setPaymentStatus] = useState(null);
+  const stripe = useStripe(); // Stripe instance
+  const elements = useElements(); // Element instance for Stripe
+  const location = useLocation(); // Get the clientSecret from location state
+  const [paymentStatus, setPaymentStatus] = useState(null); // State to manage payment status
 
+  // Handle form submission and payment processing
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const { clientSecret } = location.state;
-    const cardElement = elements.getElement(CardElement);
+    const { clientSecret } = location.state; // Get clientSecret from the passed location state
+    const cardElement = elements.getElement(CardElement); // Retrieve the CardElement
 
+    // Confirm the card payment using Stripe
     const { error, paymentIntent } = await stripe.confirmCardPayment(
       clientSecret,
       {
@@ -26,10 +28,11 @@ const CheckoutPage = () => {
     );
 
     if (error) {
-      setPaymentStatus(`Payment failed: ${error.message}`);
+      setPaymentStatus(`Payment failed: ${error.message}`); // Set error message if payment fails
     } else if (paymentIntent.status === "succeeded") {
-      setPaymentStatus("Payment succeeded!");
+      setPaymentStatus("Payment succeeded!"); // Set success message if payment succeeds
 
+      // If the user is authenticated, update their plan in Firestore
       if (auth.currentUser) {
         const userRef = doc(db, "users", auth.currentUser.uid);
         await setDoc(userRef, { plan: "premium" }, { merge: true });
@@ -37,6 +40,7 @@ const CheckoutPage = () => {
     }
   };
 
+  // Styles for the checkout form and elements
   const styles = {
     container: {
       maxWidth: "400px",
@@ -109,7 +113,8 @@ const CheckoutPage = () => {
       <h1 style={styles.heading}>Checkout</h1>
       <form onSubmit={handleSubmit} style={styles.form}>
         <div style={styles.cardElementContainer}>
-          <CardElement options={styles.cardElement} />
+          <CardElement options={styles.cardElement} />{" "}
+          {/* Stripe CardElement */}
         </div>
         <button type="submit" disabled={!stripe} style={styles.button}>
           Pay $100
@@ -121,7 +126,7 @@ const CheckoutPage = () => {
             paymentStatus.includes("succeeded") ? styles.success : styles.error
           }
         >
-          {paymentStatus}
+          {paymentStatus} {/* Display payment status */}
         </p>
       )}
     </div>

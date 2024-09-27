@@ -1,8 +1,8 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import InstagramIcon from "@mui/icons-material/Instagram";
-import FacebookIcon from "@mui/icons-material/Facebook";
-import LinkedInIcon from "@mui/icons-material/LinkedIn";
+import { Link } from "react-router-dom"; // Link component for internal navigation
+import InstagramIcon from "@mui/icons-material/Instagram"; // Instagram icon
+import FacebookIcon from "@mui/icons-material/Facebook"; // Facebook icon
+import LinkedInIcon from "@mui/icons-material/LinkedIn"; // LinkedIn icon
 
 const Footer = () => {
   const styles = {
@@ -78,10 +78,12 @@ const Footer = () => {
 
   return (
     <footer style={styles.footer}>
+      {/* Column container to display footer sections */}
       <div style={styles.columnContainer}>
         <div style={styles.column}>
           <h3 style={styles.heading}>Explore</h3>
           <div style={styles.linkList}>
+            {/* Internal navigation links */}
             <Link
               style={styles.link}
               to="/"
@@ -162,6 +164,7 @@ const Footer = () => {
         <div style={styles.column}>
           <h3 style={styles.heading}>Stay connected</h3>
           <div style={styles.socials}>
+            {/* Social media icons */}
             <InstagramIcon
               style={styles.socialIcon}
               onMouseEnter={(e) =>
@@ -192,6 +195,7 @@ const Footer = () => {
           </div>
         </div>
       </div>
+      {/* Footer bottom links */}
       <div style={styles.section}>
         <Link
           style={styles.link}
@@ -218,6 +222,7 @@ const Footer = () => {
           Code of Conduct
         </Link>
       </div>
+      {/* Footer bottom text */}
       <div style={styles.bottomText}>
         <p>DEV@Deakin 2024</p>
       </div>

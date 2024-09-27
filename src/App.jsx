@@ -1,20 +1,21 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Navbar from "./Navbar";
-import LoginPage from "./LoginPage";
-import SignUpPage from "./SignUpPage";
-import HomePage from "./HomePage";
-import NewPostPage from "./NewPostPage";
-import QuestionPage from "./QuestionPage";
-import Footer from "./Footer";
-import ArticlesPage from "./ArticlePage";
-import VideoPage from "./VideoPage";
-import CheckoutPage from "./CheckoutPage";
-import { Elements } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
-import PrivateRoute from "./PrivateRoute";
-import PlansPage from "./PlansPage";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom"; // Importing necessary components for routing
+import Navbar from "./Navbar"; // Navigation bar component
+import LoginPage from "./LoginPage"; // Login page component
+import SignUpPage from "./SignUpPage"; // Signup page component
+import HomePage from "./HomePage"; // Home page component
+import NewPostPage from "./NewPostPage"; // New post creation page component
+import QuestionPage from "./QuestionPage"; // Question page component
+import Footer from "./Footer"; // Footer component
+import ArticlesPage from "./ArticlePage"; // Articles page component
+import VideoPage from "./VideoPage"; // Video page component
+import CheckoutPage from "./CheckoutPage"; // Checkout page component
+import { Elements } from "@stripe/react-stripe-js"; // Stripe Elements for payment integration
+import { loadStripe } from "@stripe/stripe-js"; // Load Stripe for use with Stripe API
+import PrivateRoute from "./PrivateRoute"; // Private route component for authenticated access
+import PlansPage from "./PlansPage"; // Plans page component
 
+// Initialize Stripe with the public test key
 const stripePromise = loadStripe(
   "pk_test_51Q2A5jP6QkvS34Xaw8dXXlAFxrxqG3QFxhTNW94NcBzt0P38COYvUSejavaSkmOuXi78XwJWhneyycWAsZh5W3Ya00jjy9nRg6"
 );
@@ -53,4 +54,4 @@ function App() {
   );
 }
 
-export default App;
+export default App; // Export the App component as the default export

@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from "react";
-import CardCollection from "./CardCollection";
-import HeaderImage from "./HeaderImage";
-import EmailForm from "./EmailForm";
-import { getDocs, collection, query, where } from "firebase/firestore";
-import { db } from "./firebase";
+import CardCollection from "./CardCollection"; // Component for displaying a collection of posts
+import HeaderImage from "./HeaderImage"; // Component for displaying the header image
+import EmailForm from "./EmailForm"; // Component for the email subscription form
+import { getDocs, collection, query, where } from "firebase/firestore"; // Firestore methods for fetching data
+import { db } from "./firebase"; // Firebase database reference
 
 const HomePage = () => {
-  const [articles, setArticles] = useState([]);
-  const [videos, setVideos] = useState([]);
-  const [questions, setQuestions] = useState([]);
+  const [articles, setArticles] = useState([]); // State for storing articles
+  const [videos, setVideos] = useState([]); // State for storing videos
+  const [questions, setQuestions] = useState([]); // State for storing questions
 
   useEffect(() => {
+    // Fetch posts from Firestore and update states
     const fetchPosts = async () => {
       const articlesQuery = query(
         collection(db, "posts"),
@@ -34,13 +35,15 @@ const HomePage = () => {
       setQuestions(questionsSnapshot.docs.map((doc) => doc.data()));
     };
 
-    fetchPosts();
-  }, []);
+    fetchPosts(); // Call the fetchPosts function when the component mounts
+  }, []); // Empty dependency array ensures this effect runs once
 
   return (
     <>
+      {/* Display the header image */}
       <HeaderImage />
 
+      {/* Display the collections of articles, videos, and questions */}
       <CardCollection
         collectionName="Articles"
         permalink="/articles"
@@ -59,6 +62,7 @@ const HomePage = () => {
         postType="question"
       />
 
+      {/* Display the email subscription form */}
       <EmailForm />
     </>
   );

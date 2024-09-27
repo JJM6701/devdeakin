@@ -1,35 +1,38 @@
 import React, { useState, useEffect } from "react";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "./firebase";
-import CommentSection from "./CommentSection";
+import { collection, query, where, getDocs } from "firebase/firestore"; // Firebase methods for querying the Firestore database
+import { db } from "./firebase"; // Firestore database reference
+import CommentSection from "./CommentSection"; // Comment section component
 
 const ArticlesPage = () => {
-  const [articles, setArticles] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [articles, setArticles] = useState([]); // State to store the list of articles
+  const [loading, setLoading] = useState(true); // Loading state to manage the loading UI
 
   useEffect(() => {
     const fetchArticles = async () => {
       try {
+        // Query Firestore for documents where 'type' is 'article'
         const articlesRef = collection(db, "posts");
         const q = query(articlesRef, where("type", "==", "article"));
         const querySnapshot = await getDocs(q);
 
+        // Map Firestore documents into the articles list
         const articlesList = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
 
-        setArticles(articlesList);
-        setLoading(false);
+        setArticles(articlesList); // Update the articles state with fetched data
+        setLoading(false); // Set loading to false once articles are loaded
       } catch (error) {
         console.error("Error fetching articles: ", error);
-        setLoading(false);
+        setLoading(false); // Handle error and stop loading
       }
     };
 
     fetchArticles();
-  }, []);
+  }, []); // Empty dependency array to run the effect once on mount
 
+  // Inline styles for layout and article formatting
   const styles = {
     container: {
       display: "flex",
@@ -80,14 +83,17 @@ const ArticlesPage = () => {
     },
   };
 
+  // Show loading message while fetching articles
   if (loading) {
     return <div style={styles.container}>Loading articles...</div>;
   }
 
+  // Display a message if no articles are found
   if (articles.length === 0) {
     return <div style={styles.container}>No articles found.</div>;
   }
 
+  // Render the list of articles
   return (
     <div style={styles.container}>
       {articles.map((article) => (
@@ -111,8 +117,8 @@ const ArticlesPage = () => {
             <strong>Content:</strong> {article.content}
           </p>
           <p style={styles.tags}>Tags: {article.tags}</p>
-
-          <CommentSection postId={article.id} />
+          <CommentSection postId={article.id} />{" "}
+          {/* Render the comment section */}
         </div>
       ))}
     </div>

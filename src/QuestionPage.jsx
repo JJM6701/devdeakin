@@ -15,6 +15,7 @@ import axios from "axios";
 import CommentSection from "./CommentSection";
 
 const FindQuestionPage = () => {
+  // State for storing questions, usernames, filters, expanded questions, and more
   const [questions, setQuestions] = useState([]);
   const [userNames, setUserNames] = useState({});
   const [filters, setFilters] = useState({ title: "", tag: "", date: "" });
@@ -23,6 +24,7 @@ const FindQuestionPage = () => {
   const [isPremiumUser, setIsPremiumUser] = useState(false);
   const [aiAnswers, setAiAnswers] = useState({});
 
+  // Fetch questions from the database and user information
   useEffect(() => {
     const fetchQuestions = async () => {
       const q = query(collection(db, "posts"), where("type", "==", "question"));
@@ -40,6 +42,7 @@ const FindQuestionPage = () => {
       });
       setQuestions(fetchedQuestions);
 
+      // Fetch usernames for each question's creator
       const uniqueUids = [
         ...new Set(fetchedQuestions.map((question) => question.createdBy)),
       ];
@@ -58,6 +61,7 @@ const FindQuestionPage = () => {
       setUserNames(userNamesMap);
     };
 
+    // Fetch current user's premium status
     const fetchUserStatus = () => {
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -67,9 +71,7 @@ const FindQuestionPage = () => {
             const userData = userSnap.data();
             if (userData.plan === "premium") {
               setIsPremiumUser(true);
-            } else {
             }
-          } else {
           }
         } else {
           setIsPremiumUser(false);
@@ -81,6 +83,7 @@ const FindQuestionPage = () => {
     fetchUserStatus();
   }, []);
 
+  // Debounce filter input to reduce unnecessary re-renders
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedFilters(filters);
@@ -91,11 +94,13 @@ const FindQuestionPage = () => {
     };
   }, [filters]);
 
+  // Update filters based on user input
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters({ ...filters, [name]: value });
   };
 
+  // Filter questions based on the debounced filters
   const filteredQuestions = useMemo(() => {
     const { title, tag, date } = debouncedFilters;
     return questions.filter((question) => {
@@ -112,11 +117,13 @@ const FindQuestionPage = () => {
     });
   }, [debouncedFilters, questions]);
 
+  // Handle deleting a question
   const handleDelete = async (id) => {
     await deleteDoc(doc(db, "posts", id));
     setQuestions(questions.filter((question) => question.id !== id));
   };
 
+  // Toggle question expansion for showing details
   const toggleExpand = (id) => {
     setExpandedQuestions((prev) => {
       const newSet = new Set(prev);
@@ -129,6 +136,7 @@ const FindQuestionPage = () => {
     });
   };
 
+  // Generate AI answer using an API call
   const generateAiAnswer = async (questionId, questionCode) => {
     try {
       const response = await axios.post(
@@ -149,6 +157,7 @@ const FindQuestionPage = () => {
     }
   };
 
+  // Inline styles for various components
   const styles = {
     container: {
       fontFamily: "Arial, sans-serif",
@@ -228,6 +237,7 @@ const FindQuestionPage = () => {
     <div style={styles.container}>
       <h2 style={styles.header}>Find Questions</h2>
 
+      {/* Filter Inputs */}
       <div style={styles.filter}>
         <input
           type="text"
@@ -254,6 +264,7 @@ const FindQuestionPage = () => {
         />
       </div>
 
+      {/* Display filtered questions */}
       <ul style={styles.questionList}>
         {filteredQuestions.map((question) => {
           const isExpanded = expandedQuestions.has(question.id);
@@ -306,6 +317,7 @@ const FindQuestionPage = () => {
                     </p>
                   </div>
 
+                  {/* Premium users can generate AI answers */}
                   {isPremiumUser && (
                     <button
                       style={styles.button}
@@ -318,6 +330,7 @@ const FindQuestionPage = () => {
                     </button>
                   )}
 
+                  {/* Display AI answers if generated */}
                   {aiAnswers[question.id] && (
                     <div style={styles.aiAnswer}>
                       <strong>AI Answer:</strong>
@@ -325,6 +338,7 @@ const FindQuestionPage = () => {
                     </div>
                   )}
 
+                  {/* Delete button */}
                   <button
                     style={styles.button}
                     onClick={(e) => {
@@ -335,8 +349,8 @@ const FindQuestionPage = () => {
                     Delete
                   </button>
 
+                  {/* Comment Section */}
                   <div onClick={(e) => e.stopPropagation()}>
-                    {" "}
                     <CommentSection postId={question.id} />
                   </div>
                 </>

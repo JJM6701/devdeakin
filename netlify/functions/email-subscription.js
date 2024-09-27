@@ -7,8 +7,10 @@ const mg = mailgun({
 
 export async function handler(event, context) {
   try {
+    // Extract the email from the request body
     const { email } = JSON.parse(event.body);
 
+    // Define the email data
     const data = {
       from: "joshuamorrison35@gmail.com",
       to: email,
@@ -17,6 +19,7 @@ export async function handler(event, context) {
       html: "<strong>Thank you for subscribing to DEV@Deakin.</strong>",
     };
 
+    // Send the email
     await mg.messages().send(data);
 
     return {

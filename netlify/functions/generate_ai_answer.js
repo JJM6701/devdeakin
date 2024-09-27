@@ -3,9 +3,11 @@ import OpenAI from "openai";
 const openai = new OpenAI({ apiKey: process.env.VITE_OPENAI_API_KEY });
 
 exports.handler = async function (event, context) {
+  // Parse the user prompt from the request body
   const { prompt } = JSON.parse(event.body);
 
   try {
+    // Send the prompt to OpenAI and request a completion
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -18,13 +20,16 @@ exports.handler = async function (event, context) {
       ],
     });
 
+    // Extract the AI-generated answer
     const answer = completion.choices[0].message.content.trim();
 
+    // Return the answer
     return {
       statusCode: 200,
       body: JSON.stringify({ answer }),
     };
   } catch (error) {
+    // Handle and return any errors that occur
     return {
       statusCode: 500,
       body: JSON.stringify({

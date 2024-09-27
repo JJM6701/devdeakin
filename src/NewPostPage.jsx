@@ -1,39 +1,41 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { auth, db, storage } from "./firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { collection, addDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { UnControlled as CodeMirror } from "react-codemirror2";
-import ReactMarkdown from "react-markdown";
-import "codemirror/lib/codemirror.css";
-import "codemirror/theme/material.css";
-import "codemirror/mode/javascript/javascript";
+import { useNavigate } from "react-router-dom"; // Hook for navigation
+import { auth, db, storage } from "./firebase"; // Firebase services
+import { onAuthStateChanged } from "firebase/auth"; // Firebase auth state listener
+import { collection, addDoc } from "firebase/firestore"; // Firestore methods for adding documents
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage"; // Firebase storage methods for file upload
+import { UnControlled as CodeMirror } from "react-codemirror2"; // CodeMirror for code editing
+import ReactMarkdown from "react-markdown"; // Markdown rendering
+import "codemirror/lib/codemirror.css"; // CodeMirror styles
+import "codemirror/theme/material.css"; // CodeMirror theme
+import "codemirror/mode/javascript/javascript"; // CodeMirror JavaScript mode
 
 const NewPostPage = () => {
-  const [postType, setPostType] = useState("question");
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
+  const [postType, setPostType] = useState("question"); // State for selecting post type
+  const navigate = useNavigate(); // Hook for navigating pages
+  const [user, setUser] = useState(null); // State to store the current user
 
   useEffect(() => {
+    // Listen for authentication state changes and redirect if not logged in
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
         navigate("/login");
       } else {
-        setUser(currentUser);
+        setUser(currentUser); // Set the user state if authenticated
       }
     });
-    return () => unsubscribe();
+    return () => unsubscribe(); // Clean up the listener on unmount
   }, [navigate]);
 
   const handlePostTypeChange = (type) => {
-    setPostType(type);
+    setPostType(type); // Update the selected post type
   };
 
   const handleSubmit = async (post, file) => {
     try {
       let fileUrl = "";
       if (file) {
+        // Upload the file to Firebase storage and get the URL
         const storageRef = ref(storage, `${post.type}/${file.name}`);
         await uploadBytes(storageRef, file);
         fileUrl = await getDownloadURL(storageRef);
@@ -43,12 +45,13 @@ const NewPostPage = () => {
         ...post,
         fileUrl,
         date: new Date(),
-        createdBy: user.uid,
+        createdBy: user.uid, // Add the user ID to the post data
       };
 
+      // Add the post data to Firestore
       await addDoc(collection(db, "posts"), postData);
       alert("Post saved successfully!");
-      navigate("/");
+      navigate("/"); // Redirect to the homepage after successful submission
     } catch (error) {
       console.error("Error adding document: ", error);
     }
@@ -119,6 +122,7 @@ const NewPostPage = () => {
       <div style={styles.container}>
         <h2 style={styles.header}>New Post</h2>
         <div>
+          {/* Radio buttons to select the type of post */}
           <label style={styles.label}>
             <input
               type="radio"
@@ -154,6 +158,7 @@ const NewPostPage = () => {
           </label>
         </div>
 
+        {/* Render different forms based on the selected post type */}
         {postType === "question" ? (
           <QuestionForm handleSubmit={handleSubmit} styles={styles} />
         ) : postType === "article" ? (
@@ -166,6 +171,7 @@ const NewPostPage = () => {
   );
 };
 
+// Form for creating a question post
 const QuestionForm = ({ handleSubmit, styles }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -174,12 +180,12 @@ const QuestionForm = ({ handleSubmit, styles }) => {
   const [image, setImage] = useState(null);
 
   const handleFileChange = (e) => {
-    setImage(e.target.files[0]);
+    setImage(e.target.files[0]); // Set the uploaded image
   };
 
   const handleFormSubmit = () => {
     const post = { title, description, tags, code, type: "question" };
-    handleSubmit(post, image);
+    handleSubmit(post, image); // Submit the question post data
   };
 
   return (
@@ -205,6 +211,7 @@ const QuestionForm = ({ handleSubmit, styles }) => {
         value={tags}
         onChange={(e) => setTags(e.target.value)}
       />
+      {/* Code editor for the code section */}
       <div style={{ margin: "10px 0" }}>
         <h4>Write your code:</h4>
         <CodeMirror
@@ -217,6 +224,7 @@ const QuestionForm = ({ handleSubmit, styles }) => {
           onChange={(editor, data, value) => setCode(value)}
         />
       </div>
+      {/* Preview the entered code */}
       <div style={{ margin: "10px 0" }}>
         <h4>Preview:</h4>
         <div
@@ -238,6 +246,7 @@ const QuestionForm = ({ handleSubmit, styles }) => {
   );
 };
 
+// Form for creating an article post
 const ArticleForm = ({ handleSubmit, styles }) => {
   const [title, setTitle] = useState("");
   const [abstract, setAbstract] = useState("");
@@ -246,12 +255,12 @@ const ArticleForm = ({ handleSubmit, styles }) => {
   const [image, setImage] = useState(null);
 
   const handleFileChange = (e) => {
-    setImage(e.target.files[0]);
+    setImage(e.target.files[0]); // Set the uploaded image
   };
 
   const handleFormSubmit = () => {
     const post = { title, abstract, content, tags, type: "article" };
-    handleSubmit(post, image);
+    handleSubmit(post, image); // Submit the article post data
   };
 
   return (
@@ -291,6 +300,7 @@ const ArticleForm = ({ handleSubmit, styles }) => {
   );
 };
 
+// Form for creating a video post
 const VideoForm = ({ handleSubmit, styles }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -298,7 +308,7 @@ const VideoForm = ({ handleSubmit, styles }) => {
   const [video, setVideo] = useState(null);
 
   const handleFileChange = (e) => {
-    setVideo(e.target.files[0]);
+    setVideo(e.target.files[0]); // Set the uploaded video
   };
 
   const handleFormSubmit = () => {
@@ -311,7 +321,7 @@ const VideoForm = ({ handleSubmit, styles }) => {
       likes: 0,
       dislikes: 0,
     };
-    handleSubmit(post, video);
+    handleSubmit(post, video); // Submit the video post data
   };
 
   return (

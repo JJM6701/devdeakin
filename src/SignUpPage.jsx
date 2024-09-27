@@ -5,21 +5,28 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 
 function SignUpPage() {
+  // Define state for user input fields
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  // Use react-router-dom's useNavigate hook for navigation after signup
   const navigate = useNavigate();
 
+  // Handle form submission
   const handleSignUp = async (e) => {
     e.preventDefault();
+
+    // Ensure that passwords match before proceeding
     if (password !== confirmPassword) {
       alert("Passwords do not match");
       return;
     }
 
     try {
+      // Create user with Firebase authentication
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -27,13 +34,15 @@ function SignUpPage() {
       );
       const userId = userCredential.user.uid;
 
+      // Add user details to Firestore under the "users" collection
       await setDoc(doc(db, "users", userId), {
         firstName,
         lastName,
         email,
-        plan: "free",
+        plan: "free", // Default to the "free" plan for new users
       });
 
+      // Navigate to the homepage after successful sign up
       navigate("/");
     } catch (error) {
       console.error("Error creating account:", error.message);
@@ -41,6 +50,7 @@ function SignUpPage() {
     }
   };
 
+  // Inline styles for the component
   const styles = {
     container: {
       display: "flex",

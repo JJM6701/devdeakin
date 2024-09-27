@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import axios from "axios";
-import { collection, addDoc } from "firebase/firestore";
-import { db } from "./firebase";
+import axios from "axios"; // Library for making HTTP requests
+import { collection, addDoc } from "firebase/firestore"; // Firestore methods for adding documents
+import { db } from "./firebase"; // Firebase database reference
 
 const EmailForm = () => {
   const styles = {
@@ -45,24 +45,29 @@ const EmailForm = () => {
     },
   };
 
-  const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
+  const [email, setEmail] = useState(""); // State for storing the email input
+  const [message, setMessage] = useState(""); // State for storing feedback message
 
+  // Handle form submission for email subscription
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Send email to the subscription API
       const response = await axios.post(
         "/.netlify/functions/email-subscription",
         { email }
       );
 
+      // Add email to Firestore collection
       await addDoc(collection(db, "newsletterEmails"), {
         email: email,
         timestamp: new Date(),
       });
 
+      // Set success message
       setMessage(response.data.message);
     } catch (error) {
+      // Set error message if the request fails
       setMessage("Error sending email");
     }
   };
@@ -83,7 +88,8 @@ const EmailForm = () => {
           Subscribe
         </button>
       </form>
-      {message && <p style={styles.message}>{message}</p>}
+      {message && <p style={styles.message}>{message}</p>}{" "}
+      {/* Display feedback message */}
     </div>
   );
 };

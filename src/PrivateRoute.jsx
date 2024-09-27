@@ -1,31 +1,32 @@
-// src/PrivateRoute.js
 import React, { useEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "./firebase";
+import { Navigate, useNavigate } from "react-router-dom"; // React Router components for navigation
+import { onAuthStateChanged } from "firebase/auth"; // Firebase auth state listener
+import { auth } from "./firebase"; // Firebase authentication
 
 const PrivateRoute = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [user, setUser] = useState(null); // State to store the current user
+  const [loading, setLoading] = useState(true); // Loading state to manage authentication check
+  const navigate = useNavigate(); // Hook for navigation
 
   useEffect(() => {
+    // Listen for changes in the authentication state
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
-        setUser(currentUser);
+        setUser(currentUser); // Set the user if authenticated
       } else {
-        navigate("/login");
+        navigate("/login"); // Redirect to login if not authenticated
       }
-      setLoading(false);
+      setLoading(false); // Set loading to false once auth check is complete
     });
 
-    return () => unsubscribe();
+    return () => unsubscribe(); // Clean up the listener on unmount
   }, [navigate]);
 
   if (loading) {
-    return <p>Loading...</p>;
+    return <p>Loading...</p>; // Display loading message while checking authentication
   }
 
+  // Render the children components if the user is authenticated, otherwise redirect to login
   return user ? children : <Navigate to="/login" />;
 };
 

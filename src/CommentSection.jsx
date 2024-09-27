@@ -17,12 +17,13 @@ import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 
 const CommentSection = ({ postId }) => {
-  const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
+  const [comments, setComments] = useState([]); // State for storing comments
+  const [newComment, setNewComment] = useState(""); // State for storing new comment input
+  const [loading, setLoading] = useState(true); // Loading state for fetching comments
+  const [user, setUser] = useState(null); // State for storing logged-in user
 
   useEffect(() => {
+    // Listen to authentication state changes
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
@@ -32,10 +33,11 @@ const CommentSection = ({ postId }) => {
   }, []);
 
   useEffect(() => {
+    // Fetch comments for the given postId
     const fetchComments = async () => {
       try {
         const commentsRef = collection(db, "posts", postId, "comments");
-        const q = query(commentsRef, orderBy("date", "desc"));
+        const q = query(commentsRef, orderBy("date", "desc")); // Fetch comments in descending order by date
         const querySnapshot = await getDocs(q);
 
         const commentsList = querySnapshot.docs.map((doc) => ({
@@ -43,7 +45,7 @@ const CommentSection = ({ postId }) => {
           ...doc.data(),
         }));
 
-        setComments(commentsList);
+        setComments(commentsList); // Store the fetched comments
         setLoading(false);
       } catch (error) {
         console.error("Error fetching comments: ", error);
@@ -52,13 +54,12 @@ const CommentSection = ({ postId }) => {
     };
 
     fetchComments();
-  }, [postId]);
+  }, [postId]); // Run this effect when postId changes
 
   const handleCommentSubmit = async () => {
-    if (!newComment.trim()) return;
-
+    if (!newComment.trim()) return; // Prevent empty comments
     if (!user) {
-      alert("You must be logged in to comment.");
+      alert("You must be logged in to comment."); // Ensure user is logged in
       return;
     }
 
@@ -75,7 +76,7 @@ const CommentSection = ({ postId }) => {
 
     const commentData = {
       content: newComment,
-      date: Timestamp.now(), // Use Firestore's Timestamp for consistency
+      date: Timestamp.now(),
       createdBy: {
         uid: user.uid,
         firstName,
@@ -88,26 +89,25 @@ const CommentSection = ({ postId }) => {
     };
 
     try {
+      // Add the comment to Firestore
       const commentsRef = collection(db, "posts", postId, "comments");
-
-      // Add the comment to Firestore and get the generated document reference
       const docRef = await addDoc(commentsRef, commentData);
 
-      // Fetch the newly added comment from Firestore (to get the generated `id`)
+      // Fetch the newly added comment and update the local state
       const newCommentDoc = await getDoc(docRef);
       const newCommentData = {
         id: newCommentDoc.id,
         ...newCommentDoc.data(),
       };
 
-      setComments([newCommentData, ...comments]);
-
-      setNewComment("");
+      setComments([newCommentData, ...comments]); // Prepend new comment
+      setNewComment(""); // Reset comment input field
     } catch (error) {
       console.error("Error adding comment: ", error);
     }
   };
 
+  // Handle like button functionality
   const handleLikeComment = async (
     commentId,
     likes,
@@ -115,7 +115,7 @@ const CommentSection = ({ postId }) => {
     dislikes,
     dislikedBy = []
   ) => {
-    if (!user) return;
+    if (!user) return; // Ensure user is logged in
 
     const commentRef = doc(db, "posts", postId, "comments", commentId);
 
@@ -129,6 +129,7 @@ const CommentSection = ({ postId }) => {
       let updatedDislikedBy = dislikedBy;
       let updatedDislikes = dislikes;
 
+      // Remove dislike if user previously disliked
       if (dislikedBy.includes(user.uid)) {
         updatedDislikedBy = dislikedBy.filter((id) => id !== user.uid);
         updatedDislikes -= 1;
@@ -141,6 +142,7 @@ const CommentSection = ({ postId }) => {
         dislikedBy: updatedDislikedBy,
       });
 
+      // Update local comment state
       setComments((prevComments) =>
         prevComments.map((comment) =>
           comment.id === commentId
@@ -159,6 +161,7 @@ const CommentSection = ({ postId }) => {
     }
   };
 
+  // Handle dislike button functionality
   const handleDislikeComment = async (
     commentId,
     dislikes,
@@ -209,6 +212,7 @@ const CommentSection = ({ postId }) => {
     }
   };
 
+  // Handle deleting a comment
   const handleDeleteComment = async (commentId) => {
     try {
       const commentRef = doc(db, "posts", postId, "comments", commentId);
@@ -222,6 +226,7 @@ const CommentSection = ({ postId }) => {
     }
   };
 
+  // Format date to readable string
   const formatDate = (date) => {
     if (!date) return "Invalid Date";
 
@@ -232,6 +237,7 @@ const CommentSection = ({ postId }) => {
     return `${date.toLocaleDateString()} at ${date.toLocaleTimeString()}`;
   };
 
+  // Define styles for the comment section layout
   const styles = {
     container: {
       marginTop: "20px",
@@ -327,6 +333,8 @@ const CommentSection = ({ postId }) => {
                   {comment.createdBy?.firstName} {comment.createdBy?.lastName}
                 </span>
                 <span style={styles.date}>{formatDate(comment.date)}</span>
+
+                {/* Only show delete button if the logged-in user is the comment's author */}
                 {user && comment.createdBy?.uid === user.uid && (
                   <button
                     style={styles.deleteButton}
@@ -338,50 +346,55 @@ const CommentSection = ({ postId }) => {
               </div>
               <p>{comment.content}</p>
 
-              <div style={styles.likeDislikeContainer}>
-                <div
-                  style={styles.likeDislikeButton}
-                  onClick={() =>
-                    handleLikeComment(
-                      comment.id,
-                      comment.likes,
-                      comment.likedBy || [],
-                      comment.dislikes,
-                      comment.dislikedBy || []
-                    )
-                  }
-                >
-                  <ThumbUpIcon
-                    style={{
-                      color: comment.likedBy?.includes(user.uid)
-                        ? "blue"
-                        : "gray",
-                    }}
-                  />
-                  <span style={styles.likeCount}>{comment.likes || 0}</span>
-                </div>
+              {/* Only show like/dislike buttons if the user is logged in */}
+              {user && (
+                <div style={styles.likeDislikeContainer}>
+                  <div
+                    style={styles.likeDislikeButton}
+                    onClick={() =>
+                      handleLikeComment(
+                        comment.id,
+                        comment.likes,
+                        comment.likedBy || [],
+                        comment.dislikes,
+                        comment.dislikedBy || []
+                      )
+                    }
+                  >
+                    <ThumbUpIcon
+                      style={{
+                        color: comment.likedBy?.includes(user.uid)
+                          ? "blue"
+                          : "gray",
+                      }}
+                    />
+                    <span style={styles.likeCount}>{comment.likes || 0}</span>
+                  </div>
 
-                <div
-                  style={styles.likeDislikeButton}
-                  onClick={() =>
-                    handleDislikeComment(
-                      comment.id,
-                      comment.dislikes,
-                      comment.likedBy || [],
-                      comment.dislikedBy || []
-                    )
-                  }
-                >
-                  <ThumbDownIcon
-                    style={{
-                      color: comment.dislikedBy?.includes(user.uid)
-                        ? "red"
-                        : "gray",
-                    }}
-                  />
-                  <span style={styles.likeCount}>{comment.dislikes || 0}</span>
+                  <div
+                    style={styles.likeDislikeButton}
+                    onClick={() =>
+                      handleDislikeComment(
+                        comment.id,
+                        comment.dislikes,
+                        comment.likedBy || [],
+                        comment.dislikedBy || []
+                      )
+                    }
+                  >
+                    <ThumbDownIcon
+                      style={{
+                        color: comment.dislikedBy?.includes(user.uid)
+                          ? "red"
+                          : "gray",
+                      }}
+                    />
+                    <span style={styles.likeCount}>
+                      {comment.dislikes || 0}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
             </li>
           ))}
         </ul>
